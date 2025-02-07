@@ -10,10 +10,9 @@ import (
 const (
 	baseLockID    = 6877
 	checkInterval = 5 * time.Second
-	timeout       = 1 * time.Minute
 )
 
-func UpgradeIfNeeded(db *sql.DB, targetVersion int, upgradeFunc func(*sql.Tx) error) error {
+func UpgradeIfNeeded(db *sql.DB, targetVersion int, upgradeFunc func(*sql.Tx) error, timeout time.Duration) error {
 	currentVersion, err := getSchemaVersion(db)
 	if err != nil {
 		return err

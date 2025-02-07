@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	dbUser = "user"
-	dbPass = "password"
-	dbHost = "localhost"
-	dbPort = "5432"
+	dbUser  = "user"
+	dbPass  = "password"
+	dbHost  = "localhost"
+	dbPort  = "5432"
+	timeout = 5 * time.Minute
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 		log.Fatalf("Failed to connect to DB: %v", err)
 	}
 
-	if err := dblock.UpgradeIfNeeded(db, targetVersion, exampleUpgrade); err != nil {
+	if err := dblock.UpgradeIfNeeded(db, targetVersion, exampleUpgrade, timeout); err != nil {
 		log.Fatalf("Upgrade failed: %v", err)
 	} else {
 		log.Println("Schema is up to date.")
