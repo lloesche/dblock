@@ -68,11 +68,11 @@ func UpgradeIfNeeded(db *sql.DB, targetVersion int, upgradeFunc func(*sql.Tx) er
 
 func getSchemaVersion(db *sql.DB) (int, error) {
 	_, err := db.Exec(`
-        CREATE TABLE IF NOT EXISTS schema_version (
-            version INTEGER NOT NULL DEFAULT 0
-        );
-        INSERT INTO schema_version (version) SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM schema_version);
-    `)
+		CREATE TABLE IF NOT EXISTS schema_version (
+			version INTEGER NOT NULL DEFAULT 0
+		);
+		INSERT INTO schema_version (version) SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM schema_version);
+	`)
 	if err != nil {
 		return 0, logErrorf("Failed to initialize schema_version table: %v", err)
 	}
