@@ -27,22 +27,11 @@ func UpgradeIfNeeded(db *sql.DB, targetVersion int, upgradeFunc func(*sql.Tx) er
 
 	if err := acquireAdvisoryLock(db, lockID); err != nil {
 		log.Println("Another instance is handling the upgrade.")
-		deadline := time.Now().Add(timeout)
-		for time.Now().Before(deadline) {
-			time.Sleep(checkInterval)
 
-			latestVersion, err := getSchemaVersion(db)
-			if err != nil {
-				return err
-			}
-
-			if latestVersion >= targetVersion {
-				log.Println("Schema was upgraded by another instance.")
-				return nil
-			}
+		if err := WaitForSchemaVersion(db, targetVersion, timeout); err != nil {
+			return err
 		}
-
-		return logErrorf("Timeout: schema upgrade was not completed in %v", timeout)
+		return nil
 	}
 	defer func() {
 		_ = releaseAdvisoryLock(db, lockID)
@@ -135,4 +124,23 @@ func logErrorf(format string, v ...interface{}) error {
 	err := fmt.Errorf(format, v...)
 	log.Println(err)
 	return err
+}
+
+func WaitForSchemaVersion(db *sql.DB, targetVersion int, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		time.Sleep(checkInterval)
+
+		latestVersion, err := getSchemaVersion(db)
+		if err != nil {
+			return err
+		}
+
+		if latestVersion == targetVersion {
+			log.Printf("Schema version is %d\n", latestVersion)
+			return nil
+		}
+	}
+
+	return logErrorf("Timeout: waiting for schema version %d in %v", targetVersion, timeout)
 }
