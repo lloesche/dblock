@@ -44,7 +44,9 @@ func UpgradeIfNeeded(db *sql.DB, targetVersion int, upgradeFunc func(*sql.Tx) er
 
 		return logErrorf("Timeout: schema upgrade was not completed in %v", timeout)
 	}
-	defer releaseAdvisoryLock(db, lockID)
+	defer func() {
+		_ = releaseAdvisoryLock(db, lockID)
+	}()
 
 	// Double-check version after acquiring lock
 	latestVersion, err := getSchemaVersion(db)
@@ -93,12 +95,12 @@ func upgradeSchema(db *sql.DB, newVersion int, upgradeFunc func(*sql.Tx) error) 
 	}
 
 	if err := upgradeFunc(tx); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return logErrorf("Failed to modify schema: %w", err)
 	}
 
 	if _, err := tx.Exec("UPDATE schema_version SET version = $1", newVersion); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return logErrorf("Failed to update schema version: %w", err)
 	}
 
