@@ -44,7 +44,7 @@ func main() {
 	if err := dblock.UpgradeIfNeeded(db, targetVersion, exampleUpgrade, timeout); err != nil {
 		log.Fatalf("Upgrade failed: %v", err)
 	} else {
-		log.Println("Schema is up to date.")
+		log.Println("Schema is up to date!")
 	}
 }
 
